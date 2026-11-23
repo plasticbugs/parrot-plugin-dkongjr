@@ -81,8 +81,6 @@ typedef struct {
     int64_t z80_target;
     // the DAC over the line being run
     uint8_t dac;
-    uint32_t dac_sum;
-    uint64_t dac_since, line_m48;
 } jr_board_t;
 
 extern jr_board_t jr;
@@ -91,12 +89,19 @@ extern const jr_roms_t *jr_roms;
 void jr_reset(const jr_roms_t *roms);
 // Run one scanline; its sound goes in *s
 void jr_line(jr_sline_t *s);
+// Run n scanlines (n <= 512), the Z80 a line at a time and the 8035 behind
+// it, catching up when the Z80 writes to it and at the end: the same
+// machine as n jr_line()s, faster. Their sound goes in s[0..n-1].
+void jr_lines(int n, jr_sline_t *s);
 // Called at the start of vertical blank (line 240), before the NMI: the
 // board's picture is final for the frame. The plugin and the tests set it.
 extern void (*jr_vblank)(void);
 // How long the sprite copy holds the Z80, from the end of the instruction
 // that starts it (in Z80 cycles since the reset); NULL = as MAME mostly does
 extern int (*jr_dma_hold)(uint64_t end);
+// the sound program's music loop run a turn at a time (true; tests that
+// trace the 8035 instruction by instruction turn it off)
+extern bool jr_m48_fast;
 
 // The picture, as MAME draws it, turned upright: 224 wide, 256 high, one
 // palette index (0-255) a pixel. A slow, exact renderer for tests and
@@ -104,6 +109,9 @@ extern int (*jr_dma_hold)(uint64_t end);
 #define JR_W 224
 #define JR_H 256
 void jr_render(uint8_t *pens /* JR_H rows of JR_W */);
+// the same in two passes: the tiles (all of pens), then the sprites over them
+void jr_render_tiles(uint8_t *pens);
+void jr_render_sprites(uint8_t *pens);
 
 // The colours: the palette PROMs through the board's resistor networks,
 // as 0xRRGGBB (MAME's dkong2b_palette)

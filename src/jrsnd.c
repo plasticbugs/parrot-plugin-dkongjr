@@ -2,7 +2,10 @@
 // Copyright (c) 2026 Parrot Cart
 //
 // jrsnd.c -- see jrsnd.h. MAME's discrete modules, one step at a time, for
-// just the parts dkongjr_discrete uses. A logic signal carries MAME's "x
+// just the parts dkongjr_discrete uses. The circuit follows MAME 0.288's
+// nintendo/dkong_a.cpp (Couriersud) and the modules its sound/discrete.cpp,
+// disc_*.hxx (K. Wilkins, Couriersud, Derrick Renaud, Frank Palazzolo),
+// all BSD-3-Clause. A logic signal carries MAME's "x
 // time": its state at the step's end plus the fraction of the step it has
 // been in it (0 = the whole step), so the gates can give a level averaged
 // over the step instead of aliasing.
@@ -265,9 +268,9 @@ void jr_snd_reset(float rate) {
     // the Sallen-Key low pass after the DAC, pre-warped bilinear, as MAME's filter2
     {
         const double r1 = 5600, r2 = 5600, c1 = 22e-9, c2 = 10e-9, fs = rate;
-        const double fc = 1.0 / (2 * M_PI * sqrt(c1 * c2 * r1 * r2));
+        const double fc = 1.0 / (2 * 3.14159265358979323846 * sqrt(c1 * c2 * r1 * r2));
         const double q = sqrt(c1 * c2 * r1 * r2) / (c2 * (r1 + r2)), d = 1.0 / q;
-        const double t2 = 2 * fs, wc = fs * 2 * tan(M_PI * fc / fs), wc2 = wc * wc;
+        const double t2 = 2 * fs, wc = fs * 2 * tan(3.14159265358979323846 * fc / fs), wc2 = wc * wc;
         const double den = t2 * t2 + d * wc * t2 + wc2;
         s->a1 = (float)(2 * (wc2 - t2 * t2) / den);
         s->a2 = (float)((t2 * t2 - d * wc * t2 + wc2) / den);

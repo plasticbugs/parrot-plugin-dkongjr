@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 # cmppng.py A.png B.png -- how many pixels differ between two pictures of
-# the same size (8-bit RGB or RGBA PNGs, as jrhost and MAME write them)
+# the same size (8-bit RGB, RGBA or palette PNGs, as jrhost, MAME and
+# the kit's png256.py write them)
 import struct, sys, zlib
 
 def load(path):
     d = open(path, 'rb').read()
     assert d[:8] == b'\x89PNG\r\n\x1a\n', path
-    pos, idat, w = 8, b'', 0
+    pos, idat, w, plte = 8, b'', 0, None
     while pos < len(d):
         n, kind = struct.unpack('>I4s', d[pos:pos + 8])
         body = d[pos + 8:pos + 8 + n]
         if kind == b'IHDR':
             w, h, depth, ctype = struct.unpack('>IIBB', body[:10])
-            assert depth == 8 and ctype in (2, 6), (path, depth, ctype)
-            bpp = 3 if ctype == 2 else 4
+            assert depth == 8 and ctype in (2, 3, 6), (path, depth, ctype)
+            bpp = {2: 3, 3: 1, 6: 4}[ctype]
+        elif kind == b'PLTE':
+            plte = [tuple(body[i:i + 3]) for i in range(0, n, 3)]
         elif kind == b'IDAT':
             idat += body
         pos += 12 + n
@@ -34,7 +37,8 @@ def load(path):
                 p = a + b - c
                 pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
                 line[i] = (line[i] + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) & 255
-        rows.append([tuple(line[x * bpp:x * bpp + 3]) for x in range(w)])
+        if plte: rows.append([plte[v] for v in line])
+        else: rows.append([tuple(line[x * bpp:x * bpp + 3]) for x in range(w)])
         prev = line
     return w, h, rows
 

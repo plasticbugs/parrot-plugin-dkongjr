@@ -201,7 +201,7 @@ int main(int argc, char **argv) {
     if (tr_a >= 0) { snprintf(path, sizeof path, "%s/z80.trace", out); tracef = fopen(path, "w"); }
     snprintf(path, sizeof path, "%s/nmi.txt", out);
     nmif = fopen(path, "w");
-    if (mt_a >= 0) { snprintf(path, sizeof path, "%s/m48.trace", out); m48f = fopen(path, "w"); }
+    if (mt_a >= 0) { snprintf(path, sizeof path, "%s/m48.trace", out); m48f = fopen(path, "w"); jr_m48_fast = false; }
     jr_vblank = vblank;
     jr_sline_t sl;
     FILE *wf = wavfile ? fopen(wavfile, "wb") : NULL;

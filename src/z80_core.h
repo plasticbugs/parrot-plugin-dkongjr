@@ -667,7 +667,10 @@ static int z80_run(z80_t *z, int budget) {
             }
         }
         done += c;
+#ifdef Z80_TRACE
         z->cycles = start + (uint64_t)done;    // as it goes, for the trace
+#endif
     }
+    z->cycles = start + (uint64_t)done;
     return done;
 }

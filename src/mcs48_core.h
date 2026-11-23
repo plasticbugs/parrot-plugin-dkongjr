@@ -278,11 +278,3 @@ static int m48_step(m48_t *m) {
     return m48_cycles[op];
 }
 
-// (cycles counts as it goes, so a port write sees the time of its instruction)
-static int m48_run(m48_t *m, int budget) {
-    int done = 0;
-    while (done < budget) {
-        done += m48_step(m);
-    }
-    return done;
-}

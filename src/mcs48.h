@@ -15,8 +15,9 @@
 //   static inline void    M48_BUS_W(uint8_t v);          OUTL BUS,A
 //   static inline int     M48_T0(void), M48_T1(void);    the test inputs
 //
-// m48_run() runs whole instructions until the budget of machine cycles
-// (15 clocks each) is used up.
+// m48_step() runs one instruction and returns its machine cycles (15
+// clocks each); m->cycles counts them as it goes, so a port write sees the
+// time of its instruction.
 #pragma once
 #include <stdbool.h>
 #include <stdint.h>
