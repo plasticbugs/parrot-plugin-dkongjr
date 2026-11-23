@@ -10,6 +10,7 @@
 //     --trace A-B                        OUT/z80.trace: every Z80 instruction in frames A to B
 //     --m48trace A-B                     OUT/m48.trace: every 8035 instruction
 //     --wav FILE                         the sound, three steps a line (48 kHz), 16-bit mono
+//     --parts M,E                        the music's and the effects' parts in the mix (1,1)
 //     --holds FILE                       the sprite copy's holds as MAME had them (mame.sh's holds.txt)
 //   OUT/dump.bin: at each vertical blank (line 240, before the NMI), the Z80's
 //   $6000-$77FF, then the 8035's 64 bytes of RAM and its A, PSW, PC (2), P1, P2.
@@ -149,6 +150,7 @@ int main(int argc, char **argv) {
         else if (!strcmp(argv[i], "--trace")) sscanf(argv[i + 1], "%d-%d", &tr_a, &tr_b);
         else if (!strcmp(argv[i], "--m48trace")) sscanf(argv[i + 1], "%d-%d", &mt_a, &mt_b);
         else if (!strcmp(argv[i], "--wav")) wavfile = argv[i + 1];
+        else if (!strcmp(argv[i], "--parts")) sscanf(argv[i + 1], "%f,%f", &jr_snd_part[0], &jr_snd_part[1]);
         else if (!strcmp(argv[i], "--holds")) {
             FILE *f = fopen(argv[i + 1], "r");
             char k;

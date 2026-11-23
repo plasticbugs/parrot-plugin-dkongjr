@@ -12,6 +12,8 @@
 //   --script: as jrhost's, by the board's frames (in2=80 is a coin)
 //   --gain G: the sound's gain (jrp_gain)
 //   --roms-out FILE: the built ROMs (jr_roms_t), for test/jr/armcount.py
+//   --parts M,E: the music's and the effects' parts in the mix (1,1; 1,0 is the music alone)
+//   --samples-out FILE: each sample before the knee (float32, 1.0 = full scale), for test/jr/knee.py
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,6 +22,7 @@
 #include "jrcv.h"
 #include "jrplay.h"
 #include "jrroms.h"
+#include "jrsnd.h"
 #include "swzip.h"
 
 static const uint8_t tms[16][3] = {
@@ -124,13 +127,16 @@ static void check_picture(const uint8_t *pens) {
     if (n && !pic_bad++) fprintf(stderr, "picture %u: %d runs unlike a whole conversion\n", jrp_stats.pictures + 1, n);
 }
 
+static FILE *samples_f;
+static void sample_hook(float x) { fwrite(&x, sizeof x, 1, samples_f); }
+
 int main(int argc, char **argv) {
     if (argc < 4) { fprintf(stderr, "usage: jrlists ROMS.zip OUT LISTS [--script S] [--snaps L,L] [--gain G]\n"); return 2; }
     uint32_t zn;
     uint8_t *zip = slurp(argv[1], &zn);
     const char *out = argv[2];
     const int nlists = atoi(argv[3]);
-    const char *script = "", *roms_out = NULL;
+    const char *script = "", *roms_out = NULL, *samples_out = NULL;
     static int snaps[512];
     int nsnaps = 0;
     for (int i = 4; i + 1 < argc; i += 2) {
@@ -139,6 +145,12 @@ int main(int argc, char **argv) {
             for (char *p = argv[i + 1]; *p && nsnaps < 512;) { snaps[nsnaps++] = (int)strtol(p, &p, 10); if (*p == ',') p++; }
         else if (!strcmp(argv[i], "--gain")) jrp_gain = (float)atof(argv[i + 1]);
         else if (!strcmp(argv[i], "--roms-out")) roms_out = argv[i + 1];
+        else if (!strcmp(argv[i], "--parts")) sscanf(argv[i + 1], "%f,%f", &jr_snd_part[0], &jr_snd_part[1]);
+        else if (!strcmp(argv[i], "--samples-out")) samples_out = argv[i + 1];
+    }
+    if (samples_out) {
+        samples_f = fopen(samples_out, "wb");
+        jrp_sample_hook = sample_hook;
     }
     static uint8_t files[JR_NROMS][0x2000];
     const uint8_t *fp[JR_NROMS] = {0};
@@ -190,5 +202,8 @@ int main(int argc, char **argv) {
     printf("pictures drawn a part at a time: %d, %d unlike a whole drawing, %d with the HUD unlike, %d converted unlike a whole conversion\n",
            pens_checked, pens_bad, hud_bad, pic_bad);
     printf("list: %u T on MAME (%u by the kernel's costs), %d samples; %u pictures in %d lists\n", jrcv_list_t, jrcv_kit_t, JRCV_SAMPLES, jrp_stats.pictures, nlists);
+    printf("sound: gain %.2f, %u of %u samples (%.3f%%) into the knee (above %.2f of full scale)\n", jrp_gain, jrp_stats.kneed,
+           jrp_stats.samples, 100.0 * jrp_stats.kneed / (jrp_stats.samples ? jrp_stats.samples : 1), JRP_KNEE);
+    if (samples_f) fclose(samples_f);
     return 0;
 }

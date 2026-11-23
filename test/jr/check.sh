@@ -11,7 +11,10 @@
 #      (src/jrplay.c), checking the picture drawn a part at a time against
 #      a whole drawing, then tools/mame-replay.sh plays them to the SDK's
 #      kernel on MAME's ColecoVision, whose picture must be the model's
-#   3. how loud: the replay's sound next to the arcade's (tools/wavlevel.py)
+#   3. how loud: the replay's sound next to the arcade's, from 20 Hz to
+#      15 kHz over the seconds the arcade has sound (test/jr/level.py)
+#   4. what the soft knee takes from the music and from the effects
+#      (test/jr/knee.py)
 #
 # MAME runs headless (no window, no sound, a time limit), as the kit's
 # scripts run it. Needs mame and, for step 2, the ColecoVision BIOS:
@@ -24,7 +27,7 @@ roms=$(cd "${1:?usage: test/jr/check.sh ROMDIR [OUT]}" && pwd)
 zip=$roms/dkongjr.zip
 [ -f "$zip" ] || { echo "no $zip"; exit 1; }
 out=${2:-${TMPDIR:-/tmp}/dkongjr-check}
-rm -rf "$out"; mkdir -p "$out/m" "$out/jr" "$out/cv"
+rm -rf "$out"; mkdir -p "$out/m" "$out/jr" "$out/cv/all" "$out/cv/music" "$out/cv/effects"
 script=$(cat "$here/play1.txt")
 status=0
 
@@ -46,8 +49,15 @@ grep 'lists run' "$out/cv/mame.log" | sed 's/^/   /'
 python3 -I "$top/tools/png256.py" same "$out/cv/cv-3000.png" "$out/cv/mame-256x192.png" >"$out/cv/same.txt" || status=1
 sed 's/^/   /' "$out/cv/same.txt"
 
-echo "3. how loud (dBFS; an ordinary cartridge is about -22, docs/testing.md)"
-python3 -I "$top/tools/wavlevel.py" "$out/m/arcade.wav" "$out/cv/replay.wav" | sed 's/^/   /'
+echo "3. how loud: 20 Hz-15 kHz, over the seconds the arcade has sound (an ordinary cartridge is about -22 dBFS, docs/testing.md)"
+python3 -I "$here/level.py" "$out/m/arcade.wav" "$out/cv/replay.wav" | sed 's/^/   /'
+
+echo "4. what the knee takes from the music and the effects"
+"$out/jrlists" "$zip" "$out/cv/all" 3000 --script "$script" --samples-out "$out/cv/all.f32" >/dev/null
+"$out/jrlists" "$zip" "$out/cv/music" 3000 --script "$script" --parts 1,0 --samples-out "$out/cv/music.f32" >/dev/null
+"$out/jrlists" "$zip" "$out/cv/effects" 3000 --script "$script" --parts 0,1 --samples-out "$out/cv/effects.f32" >/dev/null
+gain=$(grep '^sound:' "$out/cv/log.txt" | sed 's/^sound: gain \([0-9.]*\),.*/\1/')
+python3 -I "$here/knee.py" "$out/cv/all.f32" "$out/cv/music.f32" "$out/cv/effects.f32" "$gain" "$gain" | sed 's/^/   /'
 
 [ $status = 0 ] && echo "all checks passed ($out)" || echo "FAILED ($out)"
 exit $status

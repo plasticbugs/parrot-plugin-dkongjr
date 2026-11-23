@@ -16,3 +16,9 @@ void jr_snd_reset(float rate);
 // One step. bits are jr.h's JR_S_*, dac the 8035's DAC (0-255, a fraction
 // allowed). The result is MAME's speaker sample: 16-bit full scale is 32767.
 float jr_snd_step(uint8_t bits, float dac);
+
+#ifdef JR_SND_PARTS
+// tests only: the music's part (the 8035's DAC) and the effects' (the walk,
+// jump, climb and fall circuits) in the mix, 1 each
+extern float jr_snd_part[2];
+#endif

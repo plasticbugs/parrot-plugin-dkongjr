@@ -52,5 +52,5 @@ That makes `build/DKONGJR.CVP`. Copy it to `/PLUGINS` on the card.
 ## Testing
 
 - `test/run.sh donkey-kong-jr donkey-kong-jr-usb` checks the screens it shows without its ROMs, on the kit's model of the console.
-- `test/jr/check.sh DIR`, with `DIR/dkongjr.zip` your own set, checks the game against MAME. The board's memory has to match MAME's at every frame for 6000 frames, and the plugin's lists, played to the SDK's kernel on MAME's ColecoVision, have to show the same picture as the model. It also measures how loud it is.
+- `test/jr/check.sh DIR`, with `DIR/dkongjr.zip` your own set, checks the game against MAME. The board's memory has to match MAME's at every frame for 6000 frames, and the plugin's lists, played to the SDK's kernel on MAME's ColecoVision, have to show the same picture as the model. It also measures how loud it is next to the arcade, from 20 Hz to 15 kHz over the seconds the arcade has sound (`test/jr/level.py`), and what the soft knee takes from the music and from the effects (`test/jr/knee.py`).
 - `test/jr/armcount.py` estimates the time each list takes on the cart's processor (`test/jr/build-arm.sh` builds what it runs).

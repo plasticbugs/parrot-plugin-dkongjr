@@ -27,6 +27,8 @@ extern void (*jrp_frame_hook)(void);
 extern void (*jrp_check_pens)(const uint8_t *pens);
 // and with each console picture made from them
 extern void (*jrp_check_picture)(const uint8_t *pens);
+// for tests: called with each sample before the knee (1.0 = full scale)
+extern void (*jrp_sample_hook)(float x);
 
 // the next list; its length
 size_t jrp_list(uint8_t *out);
@@ -35,9 +37,12 @@ typedef struct {
     uint32_t lists, pictures;   // made so far
     uint32_t frames;            // the board's
     float peak;                 // the loudest sample lately, of full scale (1.0: the knee's top)
+    uint32_t samples, kneed;    // samples made, and how many of them went into the knee
 } jrp_stats_t;
 extern jrp_stats_t jrp_stats;
 
-// the sound's gain into the DAC (default JRP_GAIN)
-#define JRP_GAIN 7.0f
+// the sound's gain into the DAC (default JRP_GAIN). Samples above
+// JRP_KNEE of full scale bend towards full scale (a soft knee).
+#define JRP_GAIN 9.0f
+#define JRP_KNEE 0.75f
 extern float jrp_gain;

@@ -21,6 +21,7 @@ jrp_stats_t jrp_stats;
 void (*jrp_frame_hook)(void);
 void (*jrp_check_pens)(const uint8_t *pens);
 void (*jrp_check_picture)(const uint8_t *pens);
+void (*jrp_sample_hook)(float x);
 float jrp_gain = JRP_GAIN;
 
 static uint8_t pens[JR_W * JR_H];
@@ -59,7 +60,7 @@ void jrp_init(const jr_roms_t *roms) {
     // the knee: below k a sample stays as it is; above, it bends towards full
     // scale (references/porting.md, "How loud")
     for (int i = 0; i <= 1024; i++) {
-        const float x = i / 256.0f, k = 0.75f;
+        const float x = i / 256.0f, k = JRP_KNEE;
         const float y = x <= k ? x : k + (1 - k) * (1 - expf(-(x - k) / (1 - k)));
         knee_tab[i] = 255.5f * y;
     }
@@ -79,6 +80,9 @@ static inline uint16_t level_of(float v, float *peak) {
     float x = v * jrp_gain * (256.0f / 32768);
     const float ax = fabsf(x);
     if (ax > *peak) *peak = ax;
+    jrp_stats.samples++;
+    if (ax > 256 * JRP_KNEE) jrp_stats.kneed++;
+    if (jrp_sample_hook) jrp_sample_hook(x * (1.0f / 256));
     const int i = ax < 1024 ? (int)ax : 1023;
     const float f = ax < 1024 ? ax - (float)i : 1.0f;
     float y = knee_tab[i] + (knee_tab[i + 1] - knee_tab[i]) * f;

@@ -17,6 +17,9 @@
 #include "jr.h"
 
 static float dt;
+#ifdef JR_SND_PARTS
+float jr_snd_part[2] = {1, 1};
+#endif
 
 // ---- the modules --------------------------------------------------------------------------
 static inline float charge_exp(float rc) { return 1.0f - expf(-dt / rc); }
@@ -393,7 +396,14 @@ float jr_snd_step(uint8_t bits, float dac) {
     }
 
     // ---- the amplifier (task 3)
-    const float v = (n249 * s->mix_r[0] + n241 * s->mix_r[1] + n243 * s->mix_r[2] + n242 * s->mix_r[3] + n250 * s->mix_r[4]) * s->mix_rt;
+#ifdef JR_SND_PARTS
+    // (tests only: the effects or the music alone)
+    const float pm = jr_snd_part[0], pe = jr_snd_part[1];
+#else
+    const float pm = 1, pe = 1;
+#endif
+    const float v = (pe * (n249 * s->mix_r[0] + n241 * s->mix_r[1] + n243 * s->mix_r[2] + n242 * s->mix_r[3]) +
+                     pm * n250 * s->mix_r[4]) * s->mix_rt;
     const float lp = rcfilter(&s->mix_cf, v);
     s->mix_amp.v += (lp - s->mix_amp.v) * s->mix_amp.expo;
     const float n288 = lp - s->mix_amp.v;
