@@ -1,6 +1,20 @@
 # What in this repository came from elsewhere
 
-The plugin's code is BSD-3-Clause (`LICENSE`). The plugin template it
+The plugin's code is BSD-3-Clause (`LICENSE`). Its model of the arcade
+board follows MAME 0.288 (<https://github.com/mamedev/mame/tree/mame0288>),
+also BSD-3-Clause:
+
+| Where | Follows | MAME's copyright holders |
+|---|---|---|
+| `src/jr.c` | `src/mame/nintendo/dkong.cpp`, `dkong_v.cpp` (the board, its picture and palette) | Couriersud |
+| `src/jrsnd.c` | `src/mame/nintendo/dkong_a.cpp` (the sound circuit), `src/devices/sound/discrete.cpp`, `disc_*.hxx` (its modules) | Couriersud; K. Wilkins, Couriersud, Derrick Renaud, Frank Palazzolo |
+| `src/mcs48_core.h` | `src/devices/cpu/mcs48/mcs48.cpp` (the 8035) | Dan Boris, Mirko Buffoni, Aaron Giles, Couriersud |
+| `src/z80_core.h` | `src/devices/cpu/z80/z80.cpp` (the Z80's flags) | Juergen Buchmueller |
+
+No part of the game (Nintendo's) is in this repository. The plugin and
+its tests read the user's own ROM set and never write it anywhere.
+
+The plugin template it
 started from (its build files, `lib/`, `test/`, `tools/`, `docs/` and
 workflows) and the copy of the cart's SDK in `sdk/` are by the Parrot Cart
 contributors, under the MIT license below. These parts came from other

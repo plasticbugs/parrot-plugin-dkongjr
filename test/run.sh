@@ -123,9 +123,19 @@ card_check() {
 }
 
 # ---- the plugin in src/ (tools/new-plugin.py rewrites this part) ----
+# Here, the screens it shows without its ROMs: no card, and a card with an
+# empty /DKONGJR, on FAT32 and exFAT. The game itself can't run on this
+# model, which allows a list one TV frame (its lists run back to back, a
+# little longer than a frame): test/jr/check.sh tries the game against MAME.
 if wanted donkey-kong-jr; then
-    PC_END=3000 PC_SCRIPT="500:joy=up+fire 900:joy= 1200:key=5 1500:key= 2000:joy=fire2 2300:joy=" \
-        run donkey-kong-jr "$kit/src" 'note "Donkey Kong: 3 presses"' 'back to the menu' 'psg 80 00 9F A0 00 BF C0 00 DF FF'
+    PC_END=3000 PC_SCRIPT="1000:key=1 1200:key= 1500:joy=up+fire 1800:joy=" \
+        run donkey-kong-jr "$kit/src" 'note "DKJR: the set isn.t all there"' 'back to the menu' 'psg 80 00 9F A0 00 BF C0 00 DF FF'
+    for spec in "MS-DOS FAT32:MBRSPUD:fat32" "ExFAT:GPTSPUD:exfat"; do
+        card "$spec" /DKONGJR
+        cname=${spec##*:}
+        PC_CARD=$out/card-$cname.cdr PC_END=3000 \
+            run "donkey-kong-jr-$cname" "$kit/src" 'note "DKJR: the set isn.t all there"' 'back to the menu'
+    done
 fi
 if wanted donkey-kong-jr-usb; then
     PC_END=4000 PC_SCRIPT="2000:pad=south+l 2100:lstick=1500,-900 2200:rstick=-2048,2047 2400:pad=east+up 3800:snap=usb" \
