@@ -9,6 +9,7 @@
 //     --pal FILE                         MAME's palette (index rrggbb lines) for the PNGs
 //     --trace A-B                        OUT/z80.trace: every Z80 instruction in frames A to B
 //     --m48trace A-B                     OUT/m48.trace: every 8035 instruction
+//     --wav FILE                         the sound, three steps a line (48 kHz), 16-bit mono
 //     --holds FILE                       the sprite copy's holds as MAME had them (mame.sh's holds.txt)
 //   OUT/dump.bin: at each vertical blank (line 240, before the NMI), the Z80's
 //   $6000-$77FF, then the 8035's 64 bytes of RAM and its A, PSW, PC (2), P1, P2.
@@ -17,10 +18,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <zlib.h>
 
 #include "jr.h"
 #include "jrroms.h"
+#include "jrsnd.h"
 #include "swzip.h"
 
 static jr_roms_t roms;
@@ -137,7 +140,7 @@ int main(int argc, char **argv) {
     uint8_t *zip = slurp(argv[1], &zn);
     out = argv[2];
     const int frames = atoi(argv[3]);
-    const char *script = "", *palfile = NULL;
+    const char *script = "", *palfile = NULL, *wavfile = NULL;
     for (int i = 4; i + 1 < argc; i += 2) {
         if (!strcmp(argv[i], "--script")) script = argv[i + 1];
         else if (!strcmp(argv[i], "--snaps")) {
@@ -145,6 +148,7 @@ int main(int argc, char **argv) {
         } else if (!strcmp(argv[i], "--pal")) palfile = argv[i + 1];
         else if (!strcmp(argv[i], "--trace")) sscanf(argv[i + 1], "%d-%d", &tr_a, &tr_b);
         else if (!strcmp(argv[i], "--m48trace")) sscanf(argv[i + 1], "%d-%d", &mt_a, &mt_b);
+        else if (!strcmp(argv[i], "--wav")) wavfile = argv[i + 1];
         else if (!strcmp(argv[i], "--holds")) {
             FILE *f = fopen(argv[i + 1], "r");
             char k;
@@ -200,9 +204,32 @@ int main(int argc, char **argv) {
     if (mt_a >= 0) { snprintf(path, sizeof path, "%s/m48.trace", out); m48f = fopen(path, "w"); }
     jr_vblank = vblank;
     jr_sline_t sl;
+    FILE *wf = wavfile ? fopen(wavfile, "wb") : NULL;
+    uint32_t nsamp = 0;
+    if (wf) { uint8_t h[44] = {0}; fwrite(h, 1, 44, wf); jr_snd_reset(48000.0f); }
     for (;;) {
         jr_line(&sl);
+        if (wf)
+            for (int k = 0; k < 3; k++) {
+                float v = jr_snd_step(sl.bits, sl.dac / 256.0f);
+                if (v > 32767) v = 32767;
+                if (v < -32768) v = -32768;
+                const int16_t q = (int16_t)lrintf(v);
+                fwrite(&q, 2, 1, wf);
+                nsamp++;
+            }
         if ((int)jr.frame >= frames && jr.line == JR_VBLANK_LINE) break;
+    }
+    if (wf) {
+        // the header: PCM, mono, 48,000 a second, 16 bits
+        uint8_t h[44];
+        const uint32_t data = nsamp * 2, riff = data + 36, rate = 48000, bps = 96000;
+        memcpy(h, "RIFF", 4); memcpy(h + 4, &riff, 4); memcpy(h + 8, "WAVEfmt ", 8);
+        const uint32_t fmt = 16; const uint16_t pcm = 1, ch = 1, align = 2, bits = 16;
+        memcpy(h + 16, &fmt, 4); memcpy(h + 20, &pcm, 2); memcpy(h + 22, &ch, 2); memcpy(h + 24, &rate, 4);
+        memcpy(h + 28, &bps, 4); memcpy(h + 32, &align, 2); memcpy(h + 34, &bits, 2);
+        memcpy(h + 36, "data", 4); memcpy(h + 40, &data, 4);
+        fseek(wf, 0, SEEK_SET); fwrite(h, 1, 44, wf); fclose(wf);
     }
     fclose(dumpf);
     if (tracef) fclose(tracef);
