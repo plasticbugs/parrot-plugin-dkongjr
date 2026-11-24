@@ -10,6 +10,13 @@ include(cmake/parrotcart.cmake)
 project(donkey_kong_jr C CXX ASM)
 parrotcart_init()
 
+# The same source makes the same file, whenever it's built: __DATE__ and
+# __TIME__ come from SOURCE_DATE_EPOCH, fixed here (2026-11-24, the day
+# of the v0.1.2 release).
+set(BUILD_EPOCH 1795478400)
+set(CMAKE_C_COMPILER_LAUNCHER ${CMAKE_COMMAND} -E env SOURCE_DATE_EPOCH=${BUILD_EPOCH})
+set(CMAKE_CXX_COMPILER_LAUNCHER ${CMAKE_COMMAND} -E env SOURCE_DATE_EPOCH=${BUILD_EPOCH})
+
 add_executable(donkey_kong_jr src/main.c src/jr.c src/jrroms.c src/jrsnd.c src/jrcv.c src/jrdraw.c src/jrplay.c
                src/jrzip.c)
 parrotcart_frames(donkey_kong_jr)           # a whole picture every TV frame: the frame kernel
