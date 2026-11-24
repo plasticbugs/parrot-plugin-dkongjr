@@ -9,7 +9,7 @@ Nintendo's 1982 arcade game on the ColecoVision. The cart runs the arcade's own 
 - Keypad \* or #, or - on a pad: coin
 - Keypad 1, or + on a pad: one player
 - Keypad 2: two players
-- RESET: back to the cart's menu
+- RESET, or both fire buttons and \* held for 2 seconds (Select and Start on a USB pad): back to the cart's menu
 
 ## What it needs
 

@@ -29,6 +29,6 @@ cvcart_features(donkey_kong_jr PADS PSRAM CARD)
 
 # The plugin (docs/plugin-rules.md): the ID is yours for good; the version
 # is the release's tag without its v.
-cvcart_plugin(donkey_kong_jr ID parrotcart.dkongjr NAME "Donkey Kong Jr." VERSION 0.1.1 BY "Parrot Cart"
+cvcart_plugin(donkey_kong_jr ID parrotcart.dkongjr NAME "Donkey Kong Jr." VERSION 0.1.2 BY "Parrot Cart"
               ICON src/icon.txt README README.md FILE DKONGJR.CVP
               HOME /DKONGJR)
