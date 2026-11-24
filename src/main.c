@@ -245,7 +245,7 @@ static uint32_t late, slowest_us;
 static void note(uint32_t pictures) {
     uint32_t unsel, early, unhdr;
     cvf_bus_counts(&unsel, &early, &unhdr);
-    static char s[48];
+    static char s[96];             // room for any numbers; the menu shows 32
     snprintf(s, sizeof s, "DKJR %lu/s L%lu %lu.%lums %lu/%lu/%lu", (unsigned long)pictures, (unsigned long)late,
              (unsigned long)(slowest_us / 1000), (unsigned long)(slowest_us / 100 % 10), (unsigned long)unsel,
              (unsigned long)early, (unsigned long)unhdr);

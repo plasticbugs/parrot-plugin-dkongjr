@@ -112,8 +112,8 @@ tree() {
 
 # ---- the plugin in src/ (tools/new-plugin.py rewrites this part) ----
 if wanted donkey-kong-jr; then
-    run donkey-kong-jr "$kit/src" --ms 3000 --script "500:joy=up+fire 900:joy= 1200:key=5 1500:key= 2000:joy=fire2 2300:joy="
-    expect 'note "Donkey Kong: 3 presses"' 'back to the menu' 'psg 80 00 9F A0 00 BF C0 00 DF FF'
+    run donkey-kong-jr "$kit/src" --ms 3000 --script "1000:key=1 1200:key= 1500:joy=up+fire 1800:joy="
+    expect 'note "DKJR: the set isn.t all there"' 'back to the menu' 'psg 80 00 9F A0 00 BF C0 00 DF FF'
 fi
 if wanted donkey-kong-jr-usb; then
     run donkey-kong-jr-usb "$kit/src" --ms 4000 --script "2000:pad=south+l 2100:lstick=1500,-900 2200:rstick=-2048,2047 2400:pad=east+up 3800:snap=usb"

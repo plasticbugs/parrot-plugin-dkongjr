@@ -130,12 +130,17 @@ card_check() {
 if wanted donkey-kong-jr; then
     PC_END=3000 PC_SCRIPT="1000:key=1 1200:key= 1500:joy=up+fire 1800:joy=" \
         run donkey-kong-jr "$kit/src" 'note "DKJR: the set isn.t all there"' 'back to the menu' 'psg 80 00 9F A0 00 BF C0 00 DF FF'
-    for spec in "MS-DOS FAT32:MBRSPUD:fat32" "ExFAT:GPTSPUD:exfat"; do
-        card "$spec" /DKONGJR
-        cname=${spec##*:}
-        PC_CARD=$out/card-$cname.cdr PC_END=3000 \
-            run "donkey-kong-jr-$cname" "$kit/src" 'note "DKJR: the set isn.t all there"' 'back to the menu'
-    done
+    # the card images need macOS's hdiutil
+    if command -v hdiutil >/dev/null 2>&1; then
+        for spec in "MS-DOS FAT32:MBRSPUD:fat32" "ExFAT:GPTSPUD:exfat"; do
+            card "$spec" /DKONGJR
+            cname=${spec##*:}
+            PC_CARD=$out/card-$cname.cdr PC_END=3000 \
+                run "donkey-kong-jr-$cname" "$kit/src" 'note "DKJR: the set isn.t all there"' 'back to the menu'
+        done
+    else
+        echo "  (no hdiutil: the card images are left out)"
+    fi
 fi
 if wanted donkey-kong-jr-usb; then
     PC_END=4000 PC_SCRIPT="2000:pad=south+l 2100:lstick=1500,-900 2200:rstick=-2048,2047 2400:pad=east+up 3800:snap=usb" \
